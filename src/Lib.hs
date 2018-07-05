@@ -46,13 +46,13 @@ hash_via_haskell
     -> Int         -- ^ salt
     -> Int         -- ^ hash value
 hash_via_haskell arr (I# off) (I# len) (I# salt) =
-    let ptr = byteArrayContents# arr `plusAddr#` off
+    let final = int2Word# (off +# len)
         loop (# idx, hash #) =
-          case int2Word# idx `xor#` int2Word# len of
+          case int2Word# idx `xor#` final of
             0## -> I# (word2Int# hash)
             _ ->
               let hash' = timesWord# hash 16777619## `xor#`
-                          indexWord8OffAddr# ptr idx
+                          indexWord8Array# arr idx
                   idx' = idx +# 1#
                in loop (# idx', hash' #)
-     in loop (# 0#,  (int2Word# salt) #)
+     in loop (# off,  int2Word# salt #)
